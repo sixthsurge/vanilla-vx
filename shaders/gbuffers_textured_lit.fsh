@@ -7,10 +7,11 @@ layout (location = 0) out vec4 frag_color;
 
 in vec2 uv;
 in vec2 lightmap_uv;
+in vec2 lightmap_uv_no_blocklight;
 in vec4 tint;
 
 in vec3 normal;
-in vec3 voxel_pos;
+in vec3 scene_pos;
 
 uniform sampler3D floodfill_sampler;
 
@@ -25,11 +26,20 @@ uniform vec3 cameraPosition;
 const float shadowDistanceRenderMul = 1.0;
 
 void main() {
+	vec3 voxel_pos = scene_to_voxel_space(scene_pos);
+
+	// Ease transition to vanilla lighting
+	float distance_fade  = max_of(abs(scene_pos));
+	      distance_fade *= rcp(0.5 * voxel_volume_size.x);
+		  distance_fade  = smoothstep(0.8, 1.0, distance_fade);
+
 	vec4 base_color = texture(gtexture, uv) * tint;
 	if (base_color.a < 0.1) discard;
 
-	vec3 rgb = base_color.rgb * texture(lightmap, lightmap_uv).rgb;
-	     rgb = srgb_eotf_inv(rgb);
+	vec2 lightmap_sample_uv = mix(lightmap_uv_no_blocklight, lightmap_uv, distance_fade);
+
+	vec3 rgb = base_color.rgb * texture(lightmap, lightmap_sample_uv).rgb;
+	     rgb = srgb_eotf_inv(rgb); // Convert to linear after applying vanilla lightmap
 
 	vec3 albedo = srgb_eotf_inv(base_color.rgb);
 
@@ -37,11 +47,11 @@ void main() {
 		vec3 voxel_sample_pos = clamp01((voxel_pos + normal * 0.5) * rcp(vec3(voxel_volume_size)));
 		vec3 floodfill_light = texture(floodfill_sampler, voxel_sample_pos).rgb;
 
-		rgb += sqrt(floodfill_light) * albedo;
+		rgb += sqrt(floodfill_light) * albedo * (1.0 - distance_fade);
 	}
 
-	rgb *= inversesqrt(rgb * rgb + 1.0);
-	rgb  = srgb_eotf(rgb);
+	rgb *= inversesqrt(rgb * rgb + 1.0); // Tonemap
+	rgb  = srgb_eotf(rgb); // Return to sRGB
 
 	frag_color = vec4(rgb, base_color.a);
 }
