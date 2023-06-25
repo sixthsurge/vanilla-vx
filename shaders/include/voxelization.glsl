@@ -30,8 +30,9 @@ void update_voxel_map(uint block_id) {
 	vec3 voxel_pos = scene_to_voxel_space(scene_pos);
 
 	bool is_terrain = any(equal(ivec4(renderStage), ivec4(MC_RENDER_STAGE_TERRAIN_SOLID, MC_RENDER_STAGE_TERRAIN_TRANSLUCENT, MC_RENDER_STAGE_TERRAIN_CUTOUT, MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED)));
+	bool is_water = block_id == 1;
 
-	if (is_terrain && is_inside_voxel_volume(voxel_pos)) {
+	if (is_terrain && is_inside_voxel_volume(voxel_pos) && !is_water) {
 		uint voxel_data = get_voxel_data(block_id);
 		imageStore(voxel_img, ivec3(voxel_pos), uvec4(voxel_data, 0u, 0u, 0u));
 	}

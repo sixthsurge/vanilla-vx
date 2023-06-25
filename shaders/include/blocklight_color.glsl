@@ -25,7 +25,7 @@ const vec3[] blocklight_color = vec3[](
 	// Bright red
 	vec3(1.00, 0.10, 0.10) * 8.0,
 	// Dim orange
-	vec3(1.00, 0.10, 0.10) * 2.0,
+	vec3(1.00, 0.11, 0.00) * 2.0,
 	// Medium orange
 	vec3(1.00, 0.11, 0.00) * 4.0,
 	// Bright orange
@@ -40,6 +40,8 @@ const vec3[] blocklight_color = vec3[](
 	vec3(0.75, 1.0, 0.30) * 4.0,
 	// Pearlescent froglight
 	vec3(0.75, 0.30, 1.00) * 4.0,
+	// Sea pickle
+	vec3(0.75, 1.00, 0.50) * 1.0,
 	// Buffer
 	vec3(0.0)
 );
